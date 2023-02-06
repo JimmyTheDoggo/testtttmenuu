@@ -1,0 +1,824 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Hilarious Hooligans", "DarkTheme")
+
+local dwEntities = game:GetService("Players")
+local dwLocalPlayer = dwEntities.LocalPlayer 
+local dwRunService = game:GetService("RunService")
+
+local nostun = false
+
+local settings_tbl = {
+    ESP_Enabled = false,
+    ESP_TeamCheck = false,
+    Chams = false,
+    Chams_Color = Color3.fromRGB(0,0,255),
+    Chams_Transparency = 0.1,
+    Chams_Glow_Color = Color3.fromRGB(255,0,0)
+}
+
+function destroy_chams(char)
+
+    for k,v in next, char:GetChildren() do 
+
+        if v:IsA("BasePart") and v.Transparency ~= 1 then
+
+            if v:FindFirstChild("Glow") and 
+            v:FindFirstChild("Chams") then
+
+                v.Glow:Destroy()
+                v.Chams:Destroy() 
+
+            end 
+
+        end 
+
+    end 
+
+end
+
+local espon = false
+
+dwRunService.Heartbeat:Connect(function()
+
+    if espon then
+
+        for k,v in next, dwEntities:GetPlayers() do 
+
+            if v ~= dwLocalPlayer then
+
+                if v.Character and
+                v.Character:FindFirstChild("HumanoidRootPart") and 
+                v.Character:FindFirstChild("Humanoid") and 
+                v.Character:FindFirstChild("Humanoid").Health ~= 0 then
+
+                    if false == false then
+
+                        local char = v.Character 
+
+                        for k,b in next, char:GetChildren() do 
+
+                            if b:IsA("BasePart") and 
+                            b.Transparency ~= 1 then
+                                
+                                if espon then
+
+                                    if not b:FindFirstChild("Glow") and
+                                    not b:FindFirstChild("Chams") then
+
+                                        local chams_box = Instance.new("BoxHandleAdornment", b)
+                                        chams_box.Name = "Chams"
+                                        chams_box.AlwaysOnTop = true 
+                                        chams_box.ZIndex = 4 
+                                        chams_box.Adornee = b 
+                                        chams_box.Color3 = settings_tbl.Chams_Color
+                                        chams_box.Transparency = settings_tbl.Chams_Transparency
+                                        chams_box.Size = b.Size + Vector3.new(0.02, 0.02, 0.02)
+
+                                        local glow_box = Instance.new("BoxHandleAdornment", b)
+                                        glow_box.Name = "Glow"
+                                        glow_box.AlwaysOnTop = false 
+                                        glow_box.ZIndex = 3 
+                                        glow_box.Adornee = b 
+                                        glow_box.Color3 = settings_tbl.Chams_Glow_Color
+                                        glow_box.Size = chams_box.Size + Vector3.new(0.13, 0.13, 0.13)
+
+                                    end
+
+                                else
+
+                                    destroy_chams(char)
+
+                                end
+                            
+                            end
+
+                        end
+
+                    else
+
+                        if v.Team == dwLocalPlayer.Team then
+                            destroy_chams(v.Character)
+                        end
+
+                    end
+
+                else
+
+                    destroy_chams(v.Character)
+
+                end
+
+            end
+
+        end
+
+    else 
+
+        for k,v in next, dwEntities:GetPlayers() do 
+
+            if v ~= dwLocalPlayer and 
+            v.Character and 
+            v.Character:FindFirstChild("HumanoidRootPart") and 
+            v.Character:FindFirstChild("Humanoid") and 
+            v.Character:FindFirstChild("Humanoid").Health ~= 0 then
+                
+                destroy_chams(v.Character)
+
+            end
+
+        end
+
+    end
+
+end)
+
+-- MAIN
+local plrt = Window:NewTab("Character")
+local values = plrt:NewSection("Actives")
+
+local sp = 0
+
+local Noclip = nil
+local Clip = true
+
+values:NewSlider("Speed", "go nyoom nyoom (ong)", 40, 0, function(s)
+    sp = -s
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local cspe = -s
+    local cor = coroutine.create(function()
+        --if -s ~= cspe then return end
+		wait(0.001)
+		char.Values.Speed.Value = sp
+    end)
+    coroutine.resume(cor)
+end)
+
+local flying = false
+
+local flybp = nil
+local flys = 60
+
+local canfly = false
+
+local Camera = game.Workspace.CurrentCamera
+
+local keybind = Enum.KeyCode.Z
+
+game:GetService("UserInputService").InputBegan:Connect(function(key, istyping)
+	if istyping then return end
+	if key.KeyCode ~= keybind then return end
+	if flying == true then
+	    if canfly == true then
+	        canfly = false
+	        flybp:Destroy()
+	        flybp = nil
+	    else
+	        canfly = true
+	    end
+	end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if flying == true and canfly == true then
+        if flybp then
+            flybp.Position = game.Players.LocalPlayer.Character.HumanoidRootPart.Position + Camera.CoordinateFrame.LookVector * 5000
+        else
+            flybp = Instance.new("BodyPosition", game.Players.LocalPlayer.Character.HumanoidRootPart)
+            flybp.P = flys
+            flybp.D = 1000
+            flybp.MaxForce = Vector3.new(40000000, 40000000, 40000000)
+        end
+    end
+end)
+
+values:NewButton("fly (keybind: z)", "fly high", function()
+    if flying == false then
+        flying = true
+        flys = 60
+    else
+        flying = false
+        if flybp then
+           flybp:Destroy()
+           flybp = nil
+        end
+    end
+end)
+
+values:NewButton("fly-fast (keybind: z)", "fly high", function()
+    if flying == false then
+        flying = true
+        flys = 200
+    else
+        flying = false
+        if flybp then
+           flybp:Destroy()
+           flybp = nil
+        end
+    end
+end)
+
+
+values:NewButton("AA-gun", "die", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    char:WaitForChild("Head"):Destroy()
+end)
+
+values:NewButton("no-stun", "ez", function()
+    nostun = not nostun
+end)
+
+values:NewButton("freeze/unfreeze", "u just freeze mid air or smth", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if char.HumanoidRootPart.Anchored == true then
+        char.HumanoidRootPart.Anchored = false
+    else
+        char.HumanoidRootPart.Anchored = true
+    end
+end)
+
+local function noclip(plr, char)
+    char.HumanoidRootPart.Touched:Connect(function(hit)
+            if Clip == false and hit.Transparency == 0 then
+            hit.CanCollide = false
+            local val = Instance.new("NumberValue", hit)
+            val.Name = "noclipval"
+            val.Value = hit.Transparency
+            hit.Transparency = 0.7
+        end
+    end)
+        char.HumanoidRootPart.TouchEnded:Connect(function(hit)
+                if hit:FindFirstChild("noclipval") then
+                hit.CanCollide = true
+                hit.Transparency = hit.noclipval.Value
+                hit.noclipval:Destroy()
+            end
+        end)
+end
+
+values:NewButton("noclip", "lololol", function()
+    if Clip == true then
+        Clip = false
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character
+        noclip(plr, char)
+    else
+        Clip = true
+    end
+end)
+
+local tab2 = Window:NewTab("Player")
+local settings = tab2:NewSection("Settings")
+
+local sectionnn = tab2:NewSection("Values")
+
+sectionnn:NewTextBox("Title", "put in a title", function(txt)
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    plr.leaderstats.Title.Value = txt
+end)
+
+settings:NewButton("Texture Toggle", "sets textures lolol", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if plr.leaderstats.NoTextures.Value == true then
+        plr.leaderstats.NoTextures.Value = false
+    else
+        plr.leaderstats.NoTextures.Value = true
+    end
+end)
+
+settings:NewButton("Weather Toggle", "sets weather lolol", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if plr.leaderstats.WeatherEffects.Value == true then
+        plr.leaderstats.WeatherEffects.Value = false
+    else
+        plr.leaderstats.WeatherEffects.Value = true
+    end
+end)
+
+local light
+
+settings:NewButton("Light", "ez vision", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if light == nil then
+        local ls = Instance.new("PointLight", char.Torso)
+        ls.Brightness = 2
+        ls.Range = 1000
+        light = ls
+    else
+        light:Destroy()
+        light = nil
+    end
+end)
+
+local tab3 = Window:NewTab("General")
+local sec3 = tab3:NewSection("General")
+
+sec3:NewButton("dupe", "hold out the item", function()
+    --if plr.C
+end)
+
+sec3:NewTextBox("Teleport", "put in the player name", function(txt)
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local tc = 
+    char.Head:Destroy()
+    wait(6.5)
+    local c = plr.Character
+    local bpos = Instance.new("BodyPosition", c.HumanoidRootPart)
+	bpos.P = 1000000
+    bpos.D = 1000
+    bpos.MaxForce = Vector3.new(40000000, 40000000, 40000000)
+    bpos.Position = Vector3.new(6631.02, 11723.9, -629.004)
+    wait(1)
+    bpos:Destroy()
+end)
+
+
+sec3:NewButton("esp", "see em all", function()
+    if espon == true then
+        espon = false
+    else
+        espon = true
+    end
+end)
+
+sec3:NewButton("Set Spawn", "sets yo spawn homie", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    for i, v in pairs(game.Workspace:GetDescendants()) do
+        if v:IsA("SpawnLocation") then
+           v:Destroy()
+        end
+    end
+    local sl = Instance.new("SpawnLocation", game.Workspace)
+    sl.Position = char.Torso.Position
+    sl.Parent = game.Workspace.Spawns
+    sl.Duration = 100000
+    sl.Anchored = true
+    sl.CanCollide = false
+    sl.Transparency = 1
+    plr.CharacterAdded:Connect(function(c)
+        if sl then
+        wait(2)
+        local bpos = Instance.new("BodyPosition", c:WaitForChild("HumanoidRootPart"))
+	    bpos.P = 1000000
+        bpos.D = 1000
+        bpos.MaxForce = Vector3.new(40000000, 40000000, 40000000)
+        bpos.Position = sl.Position
+        wait(1)
+        bpos:Destroy()
+        end
+    end)
+end)
+
+sec3:NewButton("Dex", "opens dex", function()
+    (game:HttpGetAsync("https://pastebin.com/raw/iuQPQq4M"))()
+end)
+
+local tab4 = Window:NewTab("Races")
+local gob = tab4:NewSection("Goblin")
+
+gob:NewButton("Hold Bag", "use it and right click", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local mouse = plr:GetMouse()
+    mouse.Button2Down:Connect(function()
+	if char:FindFirstChild("Bag Trap") then
+		local obj = game.Workspace.Thrown:FindFirstChild("TrapBag")
+    		if not obj then return end
+    		if obj.Name == "TrapBag" then
+    		    local func = coroutine.create(function()
+    			 --   obj.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+    	   --        	local weld = Instance.new("WeldConstraint", obj)
+    		  --      weld.Part0 = obj
+    	   --     	weld.Part1 = char["Right Arm"]
+    	            local bpos = Instance.new("BodyPosition", obj)
+    	            bpos.P = 1000000
+                    bpos.D = 100
+                    obj.Massless = true
+                    obj.CanCollide = false
+                    obj.CanTouch = false
+                    bpos.MaxForce = Vector3.new(400000, 400000, 400000)
+                    bpos.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+    	            game:GetService("RunService").RenderStepped:Connect(function()
+    	               bpos.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+    	            end)
+    	    	end)
+    	    	coroutine.resume(func)
+    	    end
+		
+	end
+end)
+end)
+
+gob:NewButton("Bag Cannon", "right click whereve,r u wanna shoot after dropping that shit", function()
+    local plr = game.Players.LocalPlayer
+local mouse = plr:GetMouse()
+local char = plr.Character
+
+mouse.Button2Down:Connect(function()
+	if char:FindFirstChild("Bag Trap") then
+	local obj = game.Workspace.Thrown:FindFirstChild("TrapBag")
+    		if not obj then return end
+    		if obj.Name == "TrapBag" then
+    		    local func = coroutine.create(function()
+    			 --   obj.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+    	   --        	local weld = Instance.new("WeldConstraint", obj)
+    		  --      weld.Part0 = obj
+    	   --     	weld.Part1 = char["Right Arm"]
+    	            local bpos = Instance.new("BodyPosition", obj)
+    	            bpos.P = 1000000
+                    bpos.D = 1000
+                    obj.Massless = true
+                    obj.CanCollide = false
+                    obj.CanTouch = false
+                    bpos.MaxForce = Vector3.new(400000, 400000, 400000)
+                    --bpos.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+                    bpos.Position = mouse.Hit.Position --(cf + (cf.LookVector * 30)).Position
+    	    	end)
+    	    	coroutine.resume(func)
+    	end
+	end
+end)
+end)
+
+local tab5 = Window:NewTab("Undetectable")
+local unde = tab5:NewSection("Actives")
+
+local modon = false
+
+unde:NewToggle("autolog from mod", "uhh might clog", function(state)
+    modon = state
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if modon then
+		if game.Players:FindFirstChild("A_Kanashi") or game.Players:FindFirstChild("ValentineHound") or game.Players:FindFirstChild("Lzndon") or game.Players:FindFirstChild("Xoeco") or game.Players:FindFirstChild("Calalmator") then
+	        game.Players.LocalPlayer:Kick("mod joined")
+	    end
+	else
+		--
+	end
+end)
+
+unde:NewSlider("Extra Speed", "go nyoom nyoom (but less)", 10, 0, function(s)
+    sp = -s
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local cspe = -s
+    local cor = coroutine.create(function()
+        --if -s ~= cspe then return end
+		wait(0.001)
+		char.Values.Speed.Value = sp
+    end)
+    coroutine.resume(cor)
+end)
+
+unde:NewButton("Fling away", "so that ppl just think its a bug : D", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local bpos = Instance.new("BodyPosition", char:WaitForChild("HumanoidRootPart"))
+	bpos.P = 60
+    bpos.D = 1000
+    bpos.MaxForce = Vector3.new(40000000, 40000000, 40000000)
+    local sl = Instance.new("SpawnLocation", game.Workspace)
+    sl.Position = Vector3.new(math.random(-10000,10000), math.random(1,10000), math.random(-10000,10000))
+    sl.Parent = game.Workspace.Spawns
+    sl.Duration = 100000
+    sl.Anchored = true
+    sl.CanCollide = false
+    sl.Transparency = 1
+    bpos.Position = sl.Position
+    noclip(plr, char)
+    Clip = false
+    wait(3.5)
+    Clip = true
+    char.HumanoidRootPart.Anchored = false
+    bpos:Destroy()
+    sl:Destroy()
+end)
+
+unde:NewButton("Fling + AA", "so that ppl just think its a bug : D (and u respawn)", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local bpos = Instance.new("BodyPosition", char:WaitForChild("HumanoidRootPart"))
+	bpos.P = 60
+    bpos.D = 1000
+    bpos.MaxForce = Vector3.new(40000000, 40000000, 40000000)
+    local sl = Instance.new("SpawnLocation", game.Workspace)
+    sl.Position = Vector3.new(math.random(-10000,10000), math.random(1,10000), math.random(-10000,10000))
+    sl.Parent = game.Workspace.Spawns
+    sl.Duration = 100000
+    sl.Anchored = true
+    sl.CanCollide = false
+    sl.Transparency = 1
+    bpos.Position = sl.Position
+    noclip(plr, char)
+    Clip = false
+    wait(3.5)
+    Clip = true
+    char.HumanoidRootPart.Anchored = false
+    bpos:Destroy()
+    sl:Destroy()
+    char.Head:Destroy()
+end)
+
+local tab6 = Window:NewTab("Animations")
+local ts1 = tab6:NewSection("Emotes")
+
+local cpose = nil
+local cposing = false
+
+ts1:NewButton("corvus pose", "hit da yoinky sploink", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if cpose then
+        if cposing == true then
+            cposing = false
+            cpose:Stop()
+        else
+            cpose:Play()
+            cposing = true
+        end
+    else
+        local id = "rbxassetid://9144225708"
+        local a = Instance.new("Animation")
+        a.AnimationId = id
+        local hum = char.Humanoid
+        cpose = hum:LoadAnimation(a)
+        cpose:Play() 
+    end
+end)
+
+local napose = nil
+local naposing = false
+
+ts1:NewButton("clara", "raaa", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if napose then
+        if naposing == true then
+            naposing = false
+            napose:Stop()
+        else
+            napose:Play()
+            naposing = true
+        end
+    else
+        local id = "rbxassetid://5115368745"
+        local a = Instance.new("Animation")
+        a.AnimationId = id
+        local hum = char.Humanoid
+        napose = hum:LoadAnimation(a)
+        napose:Play() 
+    end
+end)
+
+local napose2 = nil
+local naposing2 = false
+
+ts1:NewButton("funny sit", "hehe", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    if napose2 then
+        if naposing2 == true then
+            naposing2 = false
+            napose2:Stop()
+        else
+            napose2:Play()
+            naposing2 = true
+        end
+    else
+        local id = "rbxassetid://10265706499"
+        local a = Instance.new("Animation")
+        a.AnimationId = id
+        local hum = char.Humanoid
+        napose2 = hum:LoadAnimation(a)
+        napose2:Play() 
+    end
+end)
+
+local tab7 = Window:NewTab("Radio")
+local t71 = tab7:NewSection("put in id (ye it has a default song)")
+
+local s1 = Instance.new("Sound")
+s1.SoundId = "rbxassetid://6674211522"
+s1.Looped = true
+
+local so1 = nil
+
+t71:NewTextBox("radio", "put in id (type a random number in to stop)", function(txt)
+    if so1 == nil then
+        so1 = s1:Clone()
+        so1.SoundId = "rbxassetid://".. txt
+        if so1.TimeLength < 1 then
+           so1.SoundId = "rbxassetid://6674211522"
+        end
+        so1.Parent = game.Workspace
+        so1.Volume = 0.3
+        so1:Play()
+    else
+        so1:Destroy()
+        so1 = nil
+    end
+end)
+
+local tab8 = Window:NewTab("Locations")
+local t81 = tab8:NewSection("Locations")
+
+t81:NewButton("lumen", "goto lumen", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    char.Head:Destroy()
+    wait(6.5)
+    local c = plr.Character
+    local bpos = Instance.new("BodyPosition", c.HumanoidRootPart)
+	bpos.P = 1000000
+    bpos.D = 1000
+    bpos.MaxForce = Vector3.new(40000000, 40000000, 40000000)
+    bpos.Position = Vector3.new(4236, 300.455, -2445.25)
+    wait(1)
+    bpos:Destroy()
+end)
+
+t81:NewButton("dungeon", "lololol", function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    char.Head:Destroy()
+    wait(6.5)
+    local c = plr.Character
+    local bpos = Instance.new("BodyPosition", c.HumanoidRootPart)
+	bpos.P = 1000000
+    bpos.D = 1000
+    bpos.MaxForce = Vector3.new(40000000, 40000000, 40000000)
+    bpos.Position = Vector3.new(6631.02, 11723.9, -629.004)
+    wait(1)
+    bpos:Destroy()
+end)
+
+
+local tabf = Window:NewTab("fortnite")
+local tf1 = tabf:NewSection("fortnite")
+
+tf1:NewButton("drag", "ez", function()
+    local plr = game.Players.LocalPlayer
+    local mouse = plr:GetMouse()
+    local char = plr.Character
+    
+    mouse.Button2Down:Connect(function()
+    	if char:FindFirstChild("Bag Trap") then
+    	local obj = game.Workspace.Thrown:FindFirstChild("TrapBag")
+        	if not obj then return end
+        	if obj.Name == "TrapBag" then
+        	    local func = coroutine.create(function()
+            	  --obj.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+             --     local weld = Instance.new("WeldConstraint", obj)
+            	--  weld.Part0 = obj
+                --  weld.Part1 = char["Right Arm"]
+            	    local bpos = Instance.new("BodyPosition", obj)
+                    bpos.P = 1000000
+                    bpos.D = 1000
+                    obj.Massless = true
+                    obj.CanCollide = false
+                    obj.CanTouch = false
+                    bpos.MaxForce = Vector3.new(400000, 400000, 400000)
+                    --bpos.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+                    while bpos do
+                        wait()
+                        bpos.Position = mouse.Hit.Position --(cf + (cf.LookVector * 30)).Position
+                    end
+        	    end)
+        	    coroutine.resume(func)
+        	end
+    	end
+    end)
+end)
+
+tf1:NewButton("heat seek", "ez2", function()
+    local plr = game.Players.LocalPlayer
+    local mouse = plr:GetMouse()
+    local char = plr.Character
+    
+    mouse.Button2Down:Connect(function()
+    	if char:FindFirstChild("Bag Trap") then
+    	local obj = game.Workspace.Thrown:FindFirstChild("TrapBag")
+        	if not obj then return end
+        	if obj.Name == "TrapBag" then
+        	    local func = coroutine.create(function()
+        	        local hsc = mouse.Hit.Parent
+        	        if not hsc:FindFirstChild("Humanoid") then return end
+            	  --obj.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+             --     local weld = Instance.new("WeldConstraint", obj)
+            	--  weld.Part0 = obj
+                --  weld.Part1 = char["Right Arm"]
+            	    local bpos = Instance.new("BodyPosition", obj)
+                    bpos.P = 1000
+                    bpos.D = 1000
+                    obj.Massless = true
+                    obj.CanCollide = false
+                    obj.CanTouch = false
+                    bpos.MaxForce = Vector3.new(100000, 100000, 100000)
+                    --bpos.Position = char["Right Arm"].RightGripAttachment.WorldPosition
+                    while bpos do
+                        wait()
+                        bpos.Position = hsc.HumanoidRootPart.Position --(cf + (cf.LookVector * 30)).Position
+                    end
+        	    end)
+        	    coroutine.resume(func)
+        	end
+    	end
+    end)
+end)
+
+
+
+
+local hl = Instance.new("Highlight")
+hl.Name = "ehil"
+hl.FillTransparency = 0.4
+hl.OutlineTransparency = 0
+local b = Instance.new("BillboardGui")
+b.Active = true
+b.AlwaysOnTop = true
+b.ClipsDescendants = true
+b.LightInfluence = 1
+b.Size = UDim2.new(6.25,20,6.7,20)
+b.StudsOffset = Vector3.new(0,1.75,0)
+b.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+b.Name = "esp_b"
+local t = Instance.new("TextLabel")
+t.Name = "txt"
+t.Font = Enum.Font.Unknown
+t.Text = "esp_name"
+t.TextColor3 = Color3.new(1,1,1)
+t.TextScaled = true
+t.TextSize = 14
+t.TextStrokeTransparency = 0.5
+t.TextWrapped = true
+t.BackgroundTransparency = 1
+t.Size = UDim2.new(1,0,1,0)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	for i, v in pairs(game.Players:GetChildren()) do
+		local c = v.Character
+		if c then --and v ~= game.Players.LocalPlayer then
+			if not c.HumanoidRootPart:FindFirstChild("ehil") then
+				local hlc = hl:Clone()
+				hlc.Adornee = c
+				hlc.Parent = c.HumanoidRootPart
+			else
+				if espon == true then
+					c.HumanoidRootPart:FindFirstChild("ehil").Enabled = true
+				else
+					c.HumanoidRootPart:FindFirstChild("ehil").Enabled = false
+				end
+			end
+			if not c.Head:FindFirstChild("esp_b") then
+				local be = b:Clone()
+				be.Parent = c.Head
+				be.Name = "esp_b"
+				local te = t:Clone()
+				te.Parent = be
+			else
+				if espon == true then
+					c.Head:FindFirstChild("esp_b").Enabled = true
+					c.Head:FindFirstChild("esp_b"):WaitForChild("txt").Text = v.Name.. " (".. tostring(c.Humanoid.Health).. "/".. tostring(c.Humanoid.MaxHealth).. ")"
+				else
+					c.Head:FindFirstChild("esp_b").Enabled = false
+				end
+			end
+		end
+	end
+end)
+
+
+while wait() do
+    if nostun == true then
+        local c = game.Players.LocalPlayer.Character
+        if c then
+            if c:FindFirstChild("Freeze") then
+                c.Freeze:Destroy()
+            end
+            if c:FindFirstChild("BlockCooldown") then
+                c.BlockCooldown:Destroy()
+            end
+            if c:FindFirstChild("DashCooldown") then
+                c.DashCooldown:Destroy()
+            end
+            if c:FindFirstChild("RunCooldown") then
+                c.RunCooldown:Destroy()
+            end
+            --if not C
+            -- if not c:FindFirstChild("StoppedBlocking") then
+            --     local sb = Instance.new("Folder", c)
+            --     sb.Name = "StoppedBlocking"
+            -- end
+        end
+    end
+end
